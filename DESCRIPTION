@@ -19,4 +19,5 @@ Imports:
     tidyr,
     readr,
     tibble,
-    stringr
+    stringr,
+    purrr

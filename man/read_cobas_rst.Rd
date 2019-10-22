@@ -10,13 +10,15 @@ read_cobas_rst(file)
 \item{file}{path to file <chr>}
 }
 \description{
-Reads a rst file from a COBAS Liat. Most information is available through middleware,
-but information on invalid runs is currently not.
+Reads a rst file from a COBAS Liat. Most information is available through
+middleware, but information on invalid runs is currently not.
 }
 \examples{
 
 result <- read_cobas_rst("data-raw/valid_pos.rst")
 
-many_results <- list.files("data-folder", full.names = TRUE, pattern = ".rst") \%>\%
-                      purrr::map_dfr(read_cobas_rst)
+many_results <- list.files("data-folder",
+  full.names = TRUE, pattern = ".rst"
+) \%>\%
+  purrr::map_dfr(read_cobas_rst)
 }
