@@ -66,7 +66,11 @@ maldi_translation_table <- tibble::tribble(
   "Streptococcus dysgalactiae", "beta-haemolytic Streptocci of group C/G",
   "Streptococcus canis", "beta-haemolytic Streptocci of group C/G",
   "Streptococcus equi", "beta-haemolytic Streptocci of group C/G",
+<<<<<<< HEAD
   "Streptococcus equi_ssp_zooepidemicus", "beta-haemolytic Streptocci of group C/G"
 )
+=======
+  "Streptococcus equi_ssp_zooepidemicus", "beta-haemolytic Streptocci of group C/G")
+>>>>>>> d625de3ddf38625a4d008b6114dda77997507a5d
 
 usethis::use_data(maldi_translation_table, overwrite = TRUE)
