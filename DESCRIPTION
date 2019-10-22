@@ -7,8 +7,16 @@ Authors@R:
            role = c("aut", "cre"),
            email = "marc.mtk@gmail.com")
 Description: Collects various functions for use in other projects.
-License: MIT + file LICENSE
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/marcmtk/marcr
 BugReports: https://github.com/marcmtk/marcr/issues
+RoxygenNote: 6.1.1
+Imports: 
+    magrittr,
+    dplyr,
+    tidyr,
+    readr,
+    tibble,
+    stringr
