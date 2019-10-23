@@ -12,7 +12,8 @@
 #'
 #' one_file <- read_biotyper_out("data-raw/biotyper_1.astm")
 #'
-#' more_files <- list.files("data-raw", pattern = ".astm|.out", full.names = TRUE) %>%
+#' more_files <- list.files("data-raw",
+#'   pattern = ".astm|.out", full.names = TRUE) %>%
 #'   purrr::map_dfr(read_biotyper_out, .id = "run_id")
 read_biotyper_out <- function(file) {
   f <- readLines(file, warn = FALSE) %>%
@@ -65,10 +66,12 @@ read_biotyper_out <- function(file) {
         )
     )
 
-  g  %>%
-    dplyr::left_join(m, by="key") %>%
+  g %>%
+    dplyr::left_join(m, by = "key") %>%
     dplyr::rename(spot_number = key) %>% # Nesting structure is run_id -> spot_number -> guess_number
-    dplyr::mutate(score = as.numeric(score), # Spot number is not equal to spot location
-           sample = as.character(sample),
-           isolate = as.integer(isolate))
+    dplyr::mutate(
+      score = as.numeric(score), # Spot number is not equal to spot location
+      sample = as.character(sample),
+      isolate = as.integer(isolate)
+    )
 }
