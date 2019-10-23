@@ -13,3 +13,10 @@ read_biotyper_out(file)
 Bruker biotyper generates logs in `D:/Data/mbt-out/` if the folder exists.
 These files can be used to survey answers from the machine.
 }
+\examples{
+
+one_file <- read_biotyper_out("data-raw/biotyper_1.astm")
+
+more_files <- list.files("data-raw", pattern = ".astm|.out", full.names = TRUE) \%>\%
+  purrr::map_dfr(read_biotyper_out)
+}
