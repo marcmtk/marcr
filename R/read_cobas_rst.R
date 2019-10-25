@@ -35,39 +35,33 @@ read_cobas_rst <- function(file) {
   report_start <- which(grepl("\\[Report\\]", raw))
   hldata_start <- which(grepl("\\[HLData\\]", raw))
   report <- raw[seq(report_start + 1, hldata_start - 2)]
-  indented_lines <- which(grepl("(^\\s{5})|(^Warning:)", report))
+  indented_lines <- which(grepl("(^\\s+)|(^Warning:)", report))
   report[indented_lines[1] - 1] <- paste0(
     report[indented_lines[1] - 1],
     report[indented_lines] %>% trimws() %>% paste(collapse = ", ")
   )
   report <- report[-indented_lines]
-  sep_regex <- " *:(?![0-9]) *"
+  sep_regex <- ":"
   report_tbl <- tibble::tibble(x = report) %>%
     tidyr::separate(x, c("var", "value"),
-      sep = sep_regex,
-      fill = "right", extra = "merge"
+                    sep = sep_regex,
+                    fill = "right", extra = "merge"
     )
 
   hldata <- raw[seq(hldata_start + 1, length(raw))]
   hldata_tbl <- tibble::tibble(x = hldata) %>%
     tidyr::separate(x, c("var", "value"),
-      sep = sep_regex,
-      fill = "right", extra = "merge"
+                    sep = sep_regex,
+                    fill = "right", extra = "merge"
     ) %>%
     dplyr::filter(!var %in% c("Observation", "Interpretation", "Time/Date"))
 
   dplyr::bind_rows(report_tbl, hldata_tbl) %>%
+    dplyr::mutate(value = trimws(value)) %>%
     tidyr::spread(var, value) %>%
     dplyr::mutate(
-      AnalysisDateTime = readr::parse_datetime(
-        AnalysisDateTime,
-        locale = readr::locale(tz = Sys.timezone())
-      ),
+      AnalysisDateTime = anytime::anytime(AnalysisDateTime),
       `Tube Exp` = readr::parse_date(`Tube Exp`)
-    ) %>%
-    dplyr::mutate_at(
-      dplyr::vars(`Approved By`, `Ctrl Exp`, OrderingPhysician),
-      ~ dplyr::na_if(., "N/A")
     ) %>%
     dplyr::mutate(
       infl_a = detect_result(`Report Results`, "Influenza A"),
@@ -80,6 +74,8 @@ read_cobas_rst <- function(file) {
       warning = stringr::str_detect(
         `Report Results` %>% stringr::str_to_lower(),
         "warning"
-      )
+      ),
+      file = tools::file_path_sans_ext(basename(file))
     )
 }
+

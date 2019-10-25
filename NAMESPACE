@@ -3,5 +3,6 @@
 export("%>%")
 export(random_timestamp)
 export(read_biotyper_out)
+export(read_cobas_lgd)
 export(read_cobas_rst)
 importFrom(magrittr,"%>%")

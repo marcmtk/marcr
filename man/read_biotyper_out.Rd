@@ -17,6 +17,7 @@ These files can be used to survey answers from the machine.
 
 one_file <- read_biotyper_out("data-raw/biotyper_1.astm")
 
-more_files <- list.files("data-raw", pattern = ".astm|.out", full.names = TRUE) \%>\%
-  purrr::map_dfr(read_biotyper_out)
+more_files <- list.files("data-raw",
+  pattern = ".astm|.out", full.names = TRUE) \%>\%
+  purrr::map_dfr(read_biotyper_out, .id = "run_id")
 }

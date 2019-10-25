@@ -4,24 +4,30 @@
 #'
 #'
 #'
-#' @param file
+#' @param file path to file <chr>
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#'
+#' curve_data <- read_cobas_lgd("data-raw/inf_b.lgd")
 read_cobas_lgd <- function(file) {
+  demarcations <- grepl("\\/\\/", readLines(file)) %>% which
+  len_dem <- length(demarcations)
+
   targets <- read.table(file,
-                        skip = 11,
+                        skip = demarcations[len_dem - 1],
                         header = FALSE,
-                        nrows = 4,
+                        nrows = demarcations[len_dem] - demarcations[len_dem - 1] - 2,
                         col.names = c("seq", "names", "colours"),
                         colClasses = "character")
 
   read.table(file,
-             skip = 17,
+             skip = demarcations[len_dem],
              header = FALSE,
              col.names = c("cycle", targets$names),
              colClasses = "numeric") %>%
-    tidyr::gather("channel", "flourescence", -cycle)
+    tidyr::gather("channel", "flourescence", -cycle) %>%
+    dplyr::mutate(file = tools::file_path_sans_ext(basename(file)))
 }
