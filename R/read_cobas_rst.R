@@ -32,8 +32,9 @@ read_cobas_rst <- function(file) {
   con <- file(file)
   raw <- readLines(con)
   close(con)
-  report_start <- which(grepl("\\[Report\\]", raw))
-  hldata_start <- which(grepl("\\[HLData\\]", raw))
+  report_start <- grep("\\[Report\\]", raw)
+  hldata_start <- grep("\\[HLData\\]", raw)
+  if(length(hldata_start) == 0) hldata_start = length(raw) # Fixes a very occasional problem where [HLData] doesn't occur
   report <- raw[seq(report_start + 1, hldata_start - 2)]
   indented_lines <- which(grepl("(^\\s+)|(^Warning:)", report))
   report[indented_lines[1] - 1] <- paste0(
@@ -47,23 +48,31 @@ read_cobas_rst <- function(file) {
                     sep = sep_regex,
                     fill = "right", extra = "merge"
     )
-
-  hldata <- raw[seq(hldata_start + 1, length(raw))]
-  hldata_tbl <- tibble::tibble(x = hldata) %>%
-    tidyr::separate(x, c("var", "value"),
-                    sep = sep_regex,
-                    fill = "right", extra = "merge"
-    ) %>%
-    dplyr::filter(!var %in% c("Observation", "Interpretation", "Time/Date"))
-
+  
+  if(hldata_start == length(raw)) {
+    hldata_tbl <- NULL
+  } else {
+    hldata <- raw[seq(hldata_start + 1, length(raw))]
+    hldata_tbl <- tibble::tibble(x = hldata) %>%
+      tidyr::separate(x,
+                      c("var", "value"),
+                      sep = sep_regex,
+                      fill = "right",
+                      extra = "merge") %>%
+      dplyr::filter(!var %in% c("Observation", "Interpretation", "Time/Date"))
+  }
+  
   dplyr::bind_rows(report_tbl, hldata_tbl) %>%
     dplyr::mutate(value = trimws(value)) %>%
     tidyr::spread(var, value) %>%
+    tidyr::extract(Assay, "assay_code", "\\(([^()]+)\\)", remove = FALSE) %>% 
+    tidyr::separate(`Time/Date`, c("Time", "Date"), sep = ", ", extra = "merge", fill = "left") %>% 
     dplyr::mutate(
-      AnalysisDateTime = anytime::anytime(AnalysisDateTime),
-      `Tube Exp` = readr::parse_date(`Tube Exp`)
-    ) %>%
-    dplyr::mutate(
+      #AnalysisDateTime = anytime::anytime(AnalysisDateTime),
+      # Kommenteret ud da den findes i HLData sektionen, som gamle filer ikke har
+      AnalysisDateTime = lubridate::ymd_hms(paste(Date, Time)),
+      `Tube Exp` = readr::parse_date(`Tube Exp`),
+      lot = paste0(assay_code, ": ", `Tube Lot`),
       infl_a = detect_result(`Report Results`, "Influenza A"),
       infl_b = detect_result(`Report Results`, "Influenza B"),
       rsv = detect_result(`Report Results`, "RSV"),
@@ -75,7 +84,11 @@ read_cobas_rst <- function(file) {
         `Report Results` %>% stringr::str_to_lower(),
         "warning"
       ),
+      aborted = stringr::str_detect(
+        `Report Results` %>% stringr::str_to_lower(),
+        "aborted"
+      ),
+      folder = fs::path_dir(file),
       file = tools::file_path_sans_ext(basename(file))
     )
 }
-
